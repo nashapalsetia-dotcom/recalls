@@ -1,0 +1,344 @@
+Brianna Quinn & Nasha Palsetia
+DS4300
+Feb. 27, 2026
+
+MongoDB: 
+MongoDB is a document-oriented data storage model, which organizes and retrieves data typically from JSON documents. Document stores are schema-less (like key value stores) but also provide query language to retrieve and analyze data (like relational databases). MongoDB has a query language with a variety of capabilities to effectively extract and analyze specific data within a document. 
+ 
+MongoDB stores data in collections (similar format to tables) with documents in the format of rows. In this dataset, this is the format of a single document: 
+  
+{ 
+    _id: ObjectId('69922f80fac2911282c74945'), 
+    status: 'Ongoing', 
+    city: 'New York', 
+    state: 'NY', 
+    country: 'United States', 
+    classification: 'Class I', 
+    … 
+} 
+  
+MongoDB uses a JSON-like query syntax that differs significantly from SQL. While there are several features involved in MongoDB. Some of the basic query operations include:  
+
+	1	Find: Retrieves documents where the field matches the specified value. Multiple conditions can be combined using commas or $or operators. 
+	
+	Syntax: db.collection.find({ field: value })  
+	Example: db.recalls.find({ state: "MA" }, { city: “Boston” }) 
+ 
+
+	2	Count Documents: Returns the number of documents matching the given conditions. 
+ 
+	Syntax: db.collection.countDocuments({ field: value }) 
+	Example: db.recalls.countDocuments({ classification: "Class I" }) 
+ 
+
+	3	Text Search: Retrieves documents through pattern matching specific keywords. 
+ 
+	Syntax: db.collection.find({ field: { $regex: /pattern/i } }) 
+	Example: db.recalls.find({ reason_for_recall: { $regex: /listeria/i } }) 
+ 
+
+	4	Aggregation Pipeline: Processes and retrieves the data through multiple stages. 
+
+	⁃	$group: Groups documents by a field and determines the total. 
+ 
+		Syntax: { $group: { _id: "$field", count: { $sum: 1 } } } 
+ 
+	⁃	$sort: Orders results by a field. 1 is used for ascending order while –1 is used for descending order. 
+ 
+		Syntax: { $sort: { field: 1 } }  
+ 
+	⁃	$limit: Restricts the number of results returned. 
+ 
+		Syntax: { $limit: N } 
+ 
+	⁃	$project: Extracts specific fields from documents. 
+ 
+		Syntax: { $project: { newField: "$existingField" } } 
+ 
+ 
+	Example: db.recalls.aggregate([ 
+			{ $group: { _id: "$state", count: { $sum: 1 } } },  
+			{ $sort: { count: -1 } }, 
+     			{ $limit: 10 }  
+   		]) 
+  
+ 
+---
+
+ 
+Recalls Database Query Questions: 
+ 
+	1	How many total recalls are in the database? 
+
+	db.recalls.countDocuments({}) 
+  
+	Answer: 28372 
+  
+
+  
+	2	What are the top 10 states with the most recalls? 
+  
+	db.recalls.aggregate([ 
+		{$group: {_id: “$state”, count: {$sum: 1}}}, 
+		{$sort: {count: -1}}, 
+		{$limit: 10} 
+	]) 
+  
+	Answer:  
+	[ 
+	{ _id: 'CA', count: 3822 }, 
+	{ _id: 'TX', count: 1907 }, 
+	{ _id: 'IL', count: 1868 }, 
+	{ _id: 'NY', count: 1660 }, 
+	{ _id: 'WA', count: 1405 }, 
+	{ _id: 'WI', count: 1385 }, 
+	{ _id: 'MI', count: 1374 }, 
+	{ _id: 'FL', count: 1351 }, 
+	{ _id: 'OH', count: 1214 }, 
+	{ _id: 'OR', count: 1053 } 
+	] 
+  
+   
+
+	3	Which recalls are classified as Class I (dangerous)? 
+  
+	db.recalls.find({classification: “Class I”}).limit(5) 
+  
+        Condensed Answer (only 8 fields in each document): 
+        [{ 
+     	_id: ObjectId('69922f80fac2911282c74945'), 
+     	status: 'Ongoing', 
+     	city: 'New York', 
+        state: 'NY', 
+     	country: 'United States', 
+     	classification: 'Class I', 
+     	event_id: '98297', 
+     	recalling_firm: 'SUPERFOODS, INC.' 
+     	}, 
+     	{ 
+     	_id: ObjectId('69922f80fac2911282c74947'), 
+        status: 'Ongoing', 
+        city: 'New York', 
+        state: 'NY', 
+        country: 'United States', 
+        classification: 'Class I', 
+        event_id: '98297', 
+        recalling_firm: 'SUPERFOODS, INC.' 
+     	}, 
+     	{ 
+        _id: ObjectId('69922f80fac2911282c74955'), 
+        status: 'Ongoing', 
+        city: 'Eagan', 
+        state: 'MN', 
+        country: 'United States', 
+        classification: 'Class I', 
+        event_id: '98203', 
+        recalling_firm: "Gregory's Foods, Inc" 
+     	}, 
+     	{ 
+        _id: ObjectId('69922f80fac2911282c74958'), 
+        status: 'Ongoing', 
+        city: 'Baltimore', 
+        state: 'MD', 
+        country: 'United States', 
+        classification: 'Class I', 
+        event_id: '98210', 
+        recalling_firm: 'One Roof LLC' 
+     	}, 
+     	{ 
+        _id: ObjectId('69922f80fac2911282c7495f'), 
+        status: 'Ongoing', 
+        city: 'Walpole', 
+        state: 'MA', 
+        country: 'United States', 
+        classification: 'Class I', 
+        event_id: '98089', 
+        recalling_firm: 'Organic Living Superfoods Llc' 
+     	}] 
+  
+
+  
+	4	Which recalls are related to allergens? 
+  
+	db.recalls.find({reason_for_recall: {$regex: /allergen/i}}).limit(5) 
+  
+	Condensed Answer (only 8 fields in each document): 
+	[{ 
+          _id: ObjectId('69922f80fac2911282c7494f'), 
+          status: 'Ongoing', 
+          city: 'La Puente', 
+          state: 'CA', 
+          country: 'United States', 
+          classification: 'Class III', 
+          event_id: '98046', 
+          recalling_firm: 'NEW WAY IMPORT INC' 
+	}, 
+	{ 
+          _id: ObjectId('69922f80fac2911282c74958'), 
+          status: 'Ongoing', 
+          city: 'Baltimore', 
+          state: 'MD', 
+          country: 'United States', 
+          classification: 'Class I', 
+          event_id: '98210', 
+          recalling_firm: 'One Roof LLC' 
+	}, 
+	{ 
+          _id: ObjectId('69922f80fac2911282c74961'), 
+          status: 'Terminated', 
+          city: 'Harbor', 
+          state: 'OR', 
+          country: 'United States', 
+          classification: 'Class I', 
+          event_id: '97964', 
+          recalling_firm: "Anthony's BBQ" 
+	}, 
+	{ 
+          _id: ObjectId('69922f80fac2911282c74972'), 
+          status: 'Ongoing', 
+          city: 'Austin', 
+          state: 'TX', 
+          country: 'United States', 
+          classification: 'Class I', 
+          event_id: '98249', 
+          recalling_firm: 'WFM Purchasing, LP' 
+	}, 
+	{ 
+          _id: ObjectId('69922f80fac2911282c7497e'), 
+          status: 'Ongoing', 
+          city: 'Los Angeles', 
+          state: 'CA', 
+          country: 'United States', 
+          classification: 'Class I', 
+          event_id: '98267', 
+          recalling_firm: 'Herbs Forever' 
+	}] 
+  
+  
+
+	5	What are the 5 most common reasons for recalls? 
+  
+	db.recalls.aggregate([ 
+		{$group: {_id: “$reason_for_recall", count: {$sum: 1}}},  
+		{$sort: {count: -1}}, 
+		{$limit: 5} 
+	]) 
+  
+	Answer: 
+	[ 
+	{ _id: 'Product may contain undeclared milk.', count: 619 }, 
+	{ _id: 'On 02/03/2023, FRESH IDEATION FOOD GROUP, LLC dba Fresh Creative Cuisine of Baltimore, MD is  initiating a recall of  various products sold from January 24, 2023 through January 30, 2023 because the products have the potential to be contaminated with Listeria monocytogenes .', count: 408}, 
+	{ _id: "Products not manufactured under GMP's", count: 353 }, 
+	{ _id: 'Product may be contaminated with Listeria monocytogenes.', count: 335}, 
+	{ _id: 'Products were not held at an appropriate temperature due to a mechanical malfunction during transportation.', count: 330 } 
+	] 
+  
+  
+	6	How many recalls are voluntary compared to mandated? 
+  
+	db.recalls.aggregate([ 
+		{$group: {_id: “$voluntary_mandated”, count: {$sum: 1}}}, 
+		{$sort: {count: -1}} 
+	]) 
+  
+        Answer: 
+	[ 
+	{ _id: 'Voluntary: Firm initiated', count: 27969 }, 
+	{ _id: 'FDA Mandated', count: 396 }, 
+	{ _id: 'N/A', count: 6 }, 
+	{ _id: '', count: 1 } 
+	] 
+  
+
+  
+	7	How do the recalls vary by year? 
+  
+	db.recalls.aggregate([ 
+		{$project: {year: {$substr: [“$recall_initiation_date”, 0, 4]}}}, 
+		{$group: {_id: “$year”, count: {$sum: 1}}}, 
+		{$sort: {_id: 1}} 
+	]) 
+  
+        Answer: 
+	[ 
+ 	{ _id: '0212', count: 1 }, 
+ 	{ _id: '2008', count: 37 }, 
+	{ _id: '2009', count: 19 }, 
+ 	{ _id: '2010', count: 3 }, 
+	{ _id: '2011', count: 57 }, 
+	{ _id: '2012', count: 2151 }, 
+	{ _id: '2013', count: 2420 }, 
+	{ _id: '2014', count: 2451 }, 
+	{ _id: '2015', count: 2750 }, 
+	{ _id: '2016', count: 3066 }, 
+	{ _id: '2017', count: 2623 }, 
+	{ _id: '2018', count: 1977 }, 
+	{ _id: '2019', count: 1807 }, 
+	{ _id: '2020', count: 1117 }, 
+	{ _id: '2021', count: 1491 }, 
+	{ _id: '2022', count: 1425 }, 
+	{ _id: '2023', count: 2220 }, 
+	{ _id: '2024', count: 1378 }, 
+	{ _id: '2025', count: 1374 }, 
+	{ _id: '2026', count: 5 } 
+	] 
+  
+
+  
+	8	What are the top 10 firms with the most recalls? 
+  
+	db.recalls.aggregate([ 
+		{$group: {_id: “$recalling_firm”, count: {$sum: 1}}}, 
+		{$sort: {count: -1}}, 
+		{$limit: 10} 
+	]) 
+  
+          Answer: 
+	[ 
+	{ _id: 'Garden-Fresh Foods, Inc.', count: 633 }, 
+	{ _id: 'Newly Weds Foods Inc', count: 438 }, 
+	{_id: 'FRESH IDEATION FOOD GROUP, LLC dba Fresh Creative Cuisine', count: 409}, 
+	{ _id: 'Good Herbs, Inc.', count: 353 }, 
+	{ _id: 'C & S Wholesale Grocers, Inc.', count: 330 }, 
+	{ _id: 'Whole Foods Market', count: 313 }, 
+	{ _id: 'Blue Bell Creameries, L.P.', count: 294 }, 
+	{ _id: "Reser's Fine Foods, Inc.", count: 282 }, 
+	{ _id: 'Dole Fresh Vegetables Inc', count: 230 }, 
+	{ _id: 'Newly Weds Foods, Inc.', count: 219 } 
+	] 
+  
+
+  
+	9	What are the different types of statuses for recalls? 
+  
+	db.recalls.aggregate([ 
+		{$group: {_id: “$status”, count: {$sum: 1}}}, 
+		{$sort: {count: -1}} 
+	]) 
+  
+          Answer: 
+         [ 
+	{ _id: 'Terminated', count: 26785 }, 
+	{ _id: 'Ongoing', count: 1128 }, 
+	{ _id: 'Completed', count: 459 } 
+	] 
+  
+  
+
+	10	How are recalls distributed geographically? 
+  
+	db.recalls.aggregate([ 
+		{$group: {_id: “$distribution_pattern”, count: {$sum: 1}}}, 
+		{$sort: {count: 1}}, 
+		{$limit: 5} 
+	]) 
+  
+        Answer: 
+	[ 
+	{ _id: 'MO, PA', count: 1 }, 
+	{ _id: 'TX, MD, WI, CA, CO, NC, AZ, ID, OR, OH, UT', count: 1 }, 
+	{ _id: 'Nationwide and Singapore', count: 1 }, 
+	{ _id: 'Distributed in PA only.', count: 1 }, 
+	{ _id: 'WA, CA', count: 1 } 
+	] 
+  
